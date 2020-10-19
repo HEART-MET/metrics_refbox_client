@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>metrics_refbox_client</name>
+  <version>0.1.0</version>
+  <description>
+      Refbox client
+  </description>
+
+  <author email="santosh.thoduka@gmail.com">Santosh Thoduka</author>
+  <maintainer email="santosh.thoduka@gmail.com">Santosh Thoduka</maintainer>
+
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roslint</build_depend>
+
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+
+  <test_depend>roslaunch</test_depend>
+</package>

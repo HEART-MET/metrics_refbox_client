@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="config_file_path" default="$(find metrics_refbox_client)/config/" />
+  <arg name="config_file" default="refbox.json" />
+
+  <node pkg="metrics_refbox_client" type="metrics_benchmark_mockup_node"
+        name="metrics_benchmark_mockup" output="screen">
+    <remap from="~refbox_command" to="/metrics_refbox_client/command" />
+
+    <param name="refbox_client_ns" type="str" value="/metrics_refbox_client" />
+    <param name="config_file_path" type="str" value="$(arg config_file_path)"/>
+    <param name="config_file" type="str" value="$(arg config_file)"/>
+    <param name="loop_rate" type="double" value="10.0"/>
+  </node>
+</launch>

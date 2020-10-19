@@ -1,0 +1,54 @@
+{
+    "benchmarks":
+     {
+       "object_detection" :
+       {
+         "name": "Object Detection",
+         "enum": 1,
+         "topic": "object_detection_result",
+         "type": "ObjectDetectionResult"
+       },
+       "human_recognition":
+       {
+         "name": "Human Recognition",
+         "enum": 2,
+         "topic": "human_recognition_result",
+         "type": "HumanRecognitionResult"
+       },
+       "activity_recognition":
+       {
+         "name": "Activity Recognition",
+         "enum": 3,
+         "topic": "activity_recognition_result",
+         "type": "ActivityRecognitionResult"
+       },
+       "gesture_recognition":
+       {
+         "name": "Gesture Recognition",
+         "enum": 4,
+         "topic": "gesture_recognition_result",
+         "type": "GestureRecognitionResult"
+       },
+       "handover_object":
+       {
+         "name": "Handover Object",
+         "enum": 6,
+         "topic": "handover_object_result",
+         "type": "HandoverObjectResult"
+       },
+       "receive_object":
+       {
+         "name": "Receive Object",
+         "enum": 7,
+         "topic": "receive_object_result",
+         "type": "ReceiveObjectResult"
+       }
+     },
+     "teams":
+     [
+       "b-it-bots",
+       "HWU",
+       "UNIFI",
+       "UWE"
+     ]
+}

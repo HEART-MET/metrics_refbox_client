@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="team_name" default="b-it-bots" />
+
+  <node pkg="metrics_refbox_client" type="metrics_refbox_client_node"
+        name="metrics_refbox_client" output="screen">
+    <remap from="~refbox_command" to="/metrics_refbox/command" />
+    <remap from="~rosbag_event_in" to="/rosbag_recorder/event_in" />
+    <remap from="~rosbag_event_out" to="/rosbag_recorder/event_out" />
+    <remap from="~rosbag_filename" to="/rosbag_recorder/filename" />
+    <remap from="~refbox_command_confirmation" to="/metrics_refbox/command_confirmation" />
+
+    <param name="team_name" type="str" value="$(arg team_name)" />
+    <param name="refbox_ns" type="str" value="/metrics_refbox" />
+    <param name="config_file_path" type="str" value="$(find metrics_refbox_client)/config/"/>
+    <param name="config_file" type="str" value="refbox.json"/>
+    <param name="loop_rate" type="double" value="10.0"/>
+  </node>
+
+  <include file="$(find rosbag_recorder)/ros/launch/rosbag_recorder.launch" />
+</launch>

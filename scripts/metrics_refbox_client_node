@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+
+import metrics_refbox_client.metrics_refbox_client
+import rospy
+
+if __name__ == '__main__':
+    rospy.init_node('metrics_refbox_client', anonymous=True)
+    metrics_refbox_client.metrics_refbox_client.main()
