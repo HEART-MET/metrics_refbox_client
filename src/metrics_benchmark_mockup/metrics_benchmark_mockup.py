@@ -78,17 +78,17 @@ class MetricsBenchmarkMockup(object):
 
     def send_human_recognition_result(self):
         result = HumanRecognitionResult()
-        result.identity = "Alice"
+        result.identities.append("Alice")
         self.result_publishers['human_recognition'].publish(result)
 
     def send_activity_recognition_result(self):
         result = ActivityRecognitionResult()
-        result.activity = "Drinking from a cup"
+        result.activities.append("Drinking from a cup")
         self.result_publishers['activity_recognition'].publish(result)
 
     def send_gesture_recognition_result(self):
         result = GestureRecognitionResult()
-        result.gesture = "Waving for attention"
+        result.gestures.append("Waving for attention")
         self.result_publishers['gesture_recognition'].publish(result)
 
     def send_handover_object_result(self):
