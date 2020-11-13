@@ -3,7 +3,7 @@
   <arg name="team_name" default="b-it-bots" />
 
   <node pkg="metrics_refbox_client" type="metrics_refbox_client_node"
-        name="metrics_refbox_client" output="screen">
+        name="$(anon metrics_refbox_client)" output="screen">
     <remap from="~refbox_command" to="/metrics_refbox/command" />
     <remap from="~rosbag_event_in" to="/rosbag_recorder/event_in" />
     <remap from="~rosbag_event_out" to="/rosbag_recorder/event_out" />
