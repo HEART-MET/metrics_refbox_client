@@ -29,6 +29,13 @@
          "topic": "gesture_recognition_result",
          "type": "GestureRecognitionResult"
        },
+       "cluttered_pick":
+       {
+         "name": "Cluttered Pick",
+         "enum": 5,
+         "topic": "cluttered_pick_result",
+         "type": "ClutteredPickResult"
+       },
        "handover_object":
        {
          "name": "Handover Object",

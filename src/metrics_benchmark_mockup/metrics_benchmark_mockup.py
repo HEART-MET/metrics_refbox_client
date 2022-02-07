@@ -4,6 +4,7 @@
 import rospy
 import std_msgs.msg
 import os
+import random
 import json
 import uuid
 import datetime
@@ -11,6 +12,7 @@ import metrics_refbox_msgs.msg
 from metrics_refbox_msgs.msg import Command
 from metrics_refbox_msgs.msg import ObjectDetectionResult, HumanRecognitionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
+from metrics_refbox_msgs.msg import ClutteredPickResult, ClutteredPickFeedback
 from metrics_refbox_msgs.msg import BoundingBox2D
 
 
@@ -29,7 +31,10 @@ class MetricsBenchmarkMockup(object):
         self.start_time = None
         # Node cycle rate (in hz)
         self.loop_rate = rospy.Rate(rospy.get_param('~loop_rate', 10))
+        self.benchmark_duration = rospy.Duration.from_sec(5.0)
+        self.benchmark_feedback_duration = rospy.Duration.from_sec(1.0)
 
+        self.last_object = None
         # Subscribers
         rospy.Subscriber("~refbox_command", metrics_refbox_msgs.msg.Command, self.command_cb)
 
@@ -42,8 +47,8 @@ class MetricsBenchmarkMockup(object):
 
     def command_cb(self, msg):
         self.refbox_command = msg
-        self.benchmark_duration = rospy.Duration.from_sec(5.0)
         self.start_time = rospy.Time.now()
+        self.last_feedback_time = rospy.Time.now()
         rospy.logdebug('[mockup] received refbox command %d %d' % (msg.task, msg.command))
 
     def run(self):
@@ -58,16 +63,23 @@ class MetricsBenchmarkMockup(object):
                         self.send_activity_recognition_result()
                     elif self.refbox_command.task == Command.GESTURE_RECOGNITION:
                         self.send_gesture_recognition_result()
+                    elif self.refbox_command.task == Command.TASK_ORIENTED_GRASPING:
+                        self.send_cluttered_pick_result()
                     elif self.refbox_command.task == Command.HANDOVER_OBJECT:
                         self.send_handover_object_result()
                     elif self.refbox_command.task == Command.RECEIVE_OBJECT:
                         self.send_receive_object_result()
                     self.start_time = None
                     self.refbox_command = None
+                elif (rospy.Time.now() - self.last_feedback_time) > self.benchmark_feedback_duration:
+                    if self.refbox_command.task == Command.TASK_ORIENTED_GRASPING:
+                        self.send_cluttered_pick_feedback()
+                        self.last_feedback_time = rospy.Time.now()
             self.loop_rate.sleep()
 
     def send_object_detection_result(self):
         result = ObjectDetectionResult()
+        result.message_type = result.RESULT
         result.result_type = ObjectDetectionResult.BOUNDING_BOX_2D
         result.object_found = True
         #result.box2d.min_x = 5.0
@@ -78,21 +90,25 @@ class MetricsBenchmarkMockup(object):
 
     def send_human_recognition_result(self):
         result = HumanRecognitionResult()
+        result.message_type = result.RESULT
         result.identities.append("Alice")
         self.result_publishers['human_recognition'].publish(result)
 
     def send_activity_recognition_result(self):
         result = ActivityRecognitionResult()
+        result.message_type = result.RESULT
         result.activities.append("Drinking from a cup")
         self.result_publishers['activity_recognition'].publish(result)
 
     def send_gesture_recognition_result(self):
         result = GestureRecognitionResult()
+        result.message_type = result.RESULT
         result.gestures.append("Waving for attention")
         self.result_publishers['gesture_recognition'].publish(result)
 
     def send_handover_object_result(self):
         result = HandoverObjectResult()
+        result.message_type = result.RESULT
         result.human_pose = HandoverObjectResult.HUMAN_POSE_STANDING
         result.human_reach_out_result = HandoverObjectResult.HUMAN_REACHED_OUT
         result.grasp_result = HandoverObjectResult.GRASP_SUCCESSFUL
@@ -102,6 +118,7 @@ class MetricsBenchmarkMockup(object):
 
     def send_receive_object_result(self):
         result = ReceiveObjectResult()
+        result.message_type = result.RESULT
         result.human_pose = ReceiveObjectResult.HUMAN_POSE_STANDING
         result.human_reach_out_result = ReceiveObjectResult.HUMAN_REACHED_OUT
         result.pre_grasp_result = ReceiveObjectResult.OBJECT_NOT_DROPPED_BEFORE_GRASP
@@ -109,6 +126,24 @@ class MetricsBenchmarkMockup(object):
         result.post_grasp_result = ReceiveObjectResult.OBJECT_RELEASED
         self.result_publishers['receive_object'].publish(result)
 
+    def send_cluttered_pick_result(self):
+        result = ClutteredPickResult()
+        result.message_type = result.RESULT
+        result.num_objects_picked = 5
+        self.result_publishers['cluttered_pick'].publish(result)
+
+    def send_cluttered_pick_feedback(self):
+        result = ClutteredPickResult()
+        result.message_type = result.FEEDBACK
+        if not self.last_object:
+            result.object_name = "Apple%02d" % random.randint(1, 20)
+            self.last_object = result.object_name
+            result.action_completed = ClutteredPickFeedback.PICKED
+        else:
+            result.object_name = self.last_object
+            self.last_object = None
+            result.action_completed = ClutteredPickFeedback.PLACED
+        self.result_publishers['cluttered_pick'].publish(result)
 
 
 def main():

@@ -166,11 +166,17 @@ class MetricsRefboxClient(object):
         If we receive a stop command, republish it to the robot, and stop recording.
         '''
         if self.result is not None and self.result_type is not None:
-            self.result_publishers[self.result_type].publish(self.result)
-            self.rosbag_event_pub.publish('e_stop')
-            self.result = None
-            self.result_type = None
-            return 'IDLE'
+            if self.result.message_type == self.result.RESULT:
+                self.result_publishers[self.result_type].publish(self.result)
+                self.rosbag_event_pub.publish('e_stop')
+                self.result = None
+                self.result_type = None
+                return 'IDLE'
+            elif self.result.message_type == self.result.FEEDBACK:
+                self.result_publishers[self.result_type].publish(self.result)
+                self.result = None
+                self.result_type = None
+                return 'BENCHMARK_RUNNING'
 
         if self.refbox_command is not None:
             if self.refbox_command.command == Command.STOP:
