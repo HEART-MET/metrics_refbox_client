@@ -49,6 +49,13 @@
          "enum": 7,
          "topic": "receive_object_result",
          "type": "ReceiveObjectResult"
+       },
+       "assess_activity_state":
+       {
+         "name": "Assess Activity State",
+         "enum": 8,
+         "topic": "assess_activity_state_result",
+         "type": "AssessActivityStateResult"
        }
      },
      "teams":

@@ -12,7 +12,7 @@ import metrics_refbox_msgs.msg
 from metrics_refbox_msgs.msg import Command
 from metrics_refbox_msgs.msg import ObjectDetectionResult, HumanRecognitionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
-from metrics_refbox_msgs.msg import ClutteredPickResult, ClutteredPickFeedback
+from metrics_refbox_msgs.msg import ClutteredPickResult, AssessActivityStateResult
 from metrics_refbox_msgs.msg import BoundingBox2D
 
 
@@ -35,6 +35,7 @@ class MetricsBenchmarkMockup(object):
         self.benchmark_feedback_duration = rospy.Duration.from_sec(1.0)
 
         self.last_object = None
+        self.assess_activity_phase = 'detect'
         # Subscribers
         rospy.Subscriber("~refbox_command", metrics_refbox_msgs.msg.Command, self.command_cb)
 
@@ -69,12 +70,18 @@ class MetricsBenchmarkMockup(object):
                         self.send_handover_object_result()
                     elif self.refbox_command.task == Command.RECEIVE_OBJECT:
                         self.send_receive_object_result()
+                    elif self.refbox_command.task == Command.ASSESS_ACTIVITY_STATE:
+                        self.send_assess_activity_state_result()
                     self.start_time = None
                     self.refbox_command = None
                 elif (rospy.Time.now() - self.last_feedback_time) > self.benchmark_feedback_duration:
                     if self.refbox_command.task == Command.TASK_ORIENTED_GRASPING:
                         self.send_cluttered_pick_feedback()
                         self.last_feedback_time = rospy.Time.now()
+                    elif self.refbox_command.task == Command.ASSESS_ACTIVITY_STATE:
+                        self.send_assess_activity_state_feedback()
+                        self.last_feedback_time = rospy.Time.now()
+
             self.loop_rate.sleep()
 
     def send_object_detection_result(self):
@@ -145,6 +152,35 @@ class MetricsBenchmarkMockup(object):
             result.action_completed = ClutteredPickFeedback.PLACED
         self.result_publishers['cluttered_pick'].publish(result)
 
+    def send_assess_activity_state_result(self):
+        self.assess_activity_phase = 'detect'
+
+        result = AssessActivityStateResult()
+        result.message_type = result.RESULT
+        result.activities.append("Drinking from a cup")
+        self.result_publishers['assess_activity_state'].publish(result)
+
+    def send_assess_activity_state_feedback(self):
+        result = AssessActivityStateResult()
+        result.message_type = result.FEEDBACK
+        if self.assess_activity_phase == 'detect':
+            result.phase = result.PHASE_DETECTION
+            result.box2d.min_x = 5
+            result.box2d.min_y = 10
+            result.box2d.max_x = 28
+            result.box2d.max_y = 50
+            self.assess_activity_phase = 'visual'
+        elif self.assess_activity_phase == 'visual':
+            result.phase = result.PHASE_VISUAL_ASSESSMENT
+            result.activities.append("Drinking from a cup")
+            self.assess_activity_phase = 'verbal'
+        elif self.assess_activity_phase == 'verbal':
+            result.phase = result.PHASE_VERBAL_ASSESSMENT
+            result.activities.append("Drinking from a cup")
+            self.assess_activity_phase = None
+        else:
+            return
+        self.result_publishers['assess_activity_state'].publish(result)
 
 def main():
     client = MetricsBenchmarkMockup()
