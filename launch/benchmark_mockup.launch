@@ -11,5 +11,6 @@
     <param name="config_file_path" type="str" value="$(arg config_file_path)"/>
     <param name="config_file" type="str" value="$(arg config_file)"/>
     <param name="loop_rate" type="double" value="10.0"/>
+    <param name="sample_images_path" type="str" value="$(find metrics_refbox_client)/src/metrics_benchmark_mockup/sample_images"/>
   </node>
 </launch>

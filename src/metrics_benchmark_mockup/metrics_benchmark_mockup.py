@@ -9,6 +9,8 @@ import json
 import uuid
 import datetime
 import metrics_refbox_msgs.msg
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
 from metrics_refbox_msgs.msg import Command
 from metrics_refbox_msgs.msg import ObjectDetectionResult, HumanRecognitionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
@@ -22,6 +24,7 @@ class MetricsBenchmarkMockup(object):
     def __init__(self):
         config_file = rospy.get_param('~config_file')
         self.config_file_path = rospy.get_param('~config_file_path')
+        self.sample_images_path = rospy.get_param('~sample_images_path')
         refbox_client_ns = rospy.get_param("~refbox_client_ns")
 
         stream = open(os.path.join(self.config_file_path, config_file), 'r')
@@ -33,6 +36,8 @@ class MetricsBenchmarkMockup(object):
         self.loop_rate = rospy.Rate(rospy.get_param('~loop_rate', 10))
         self.benchmark_duration = rospy.Duration.from_sec(5.0)
         self.benchmark_feedback_duration = rospy.Duration.from_sec(1.0)
+
+        self.cv_bridge = CvBridge()
 
         self.last_object = None
         self.assess_activity_phase = 'detect'
@@ -89,10 +94,12 @@ class MetricsBenchmarkMockup(object):
         result.message_type = result.RESULT
         result.result_type = ObjectDetectionResult.BOUNDING_BOX_2D
         result.object_found = True
-        #result.box2d.min_x = 5.0
-        #result.box2d.min_y = 10.0
-        #result.box2d.max_x = 28.0
-        #result.box2d.max_y = 50.0
+        img = cv2.imread(os.path.join(self.sample_images_path, 'image.jpg'), cv2.IMREAD_COLOR)
+        result.image = self.cv_bridge.cv2_to_imgmsg(img, encoding='passthrough')
+        result.box2d.min_x = 148
+        result.box2d.min_y = 208
+        result.box2d.max_x = 202
+        result.box2d.max_y = 368
         self.result_publishers['object_detection'].publish(result)
 
     def send_human_recognition_result(self):
