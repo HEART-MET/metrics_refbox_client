@@ -18,6 +18,7 @@
 
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>cv_bridge</run_depend>
 
   <test_depend>roslaunch</test_depend>
 </package>
