@@ -14,7 +14,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from metrics_refbox_msgs.msg import Command
 from metrics_refbox_msgs.msg import ObjectDetectionResult, HumanRecognitionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
-from metrics_refbox_msgs.msg import ClutteredPickResult, AssessActivityStateResult
+from metrics_refbox_msgs.msg import ClutteredPickResult, AssessActivityStateResult, ItemDeliveryResult
 from metrics_refbox_msgs.msg import BoundingBox2D
 
 
@@ -41,6 +41,7 @@ class MetricsBenchmarkMockup(object):
 
         self.last_object = None
         self.assess_activity_phase = 'detect'
+        self.item_delivery_phase = 'nav_to_object'
         # Subscribers
         rospy.Subscriber("~refbox_command", metrics_refbox_msgs.msg.Command, self.command_cb)
 
@@ -56,6 +57,10 @@ class MetricsBenchmarkMockup(object):
         self.start_time = rospy.Time.now()
         self.last_feedback_time = rospy.Time.now()
         rospy.logdebug('[mockup] received refbox command %d %d' % (msg.task, msg.command))
+        if msg.task == Command.ITEM_DELIVERY:
+            self.benchmark_duration = rospy.Duration.from_sec(10.0)
+        else:
+            self.benchmark_duration = rospy.Duration.from_sec(5.0)
 
     def run(self):
         while not rospy.is_shutdown():
@@ -77,6 +82,8 @@ class MetricsBenchmarkMockup(object):
                         self.send_receive_object_result()
                     elif self.refbox_command.task == Command.ASSESS_ACTIVITY_STATE:
                         self.send_assess_activity_state_result()
+                    elif self.refbox_command.task == Command.ITEM_DELIVERY:
+                        self.send_item_delivery_result()
                     self.start_time = None
                     self.refbox_command = None
                 elif (rospy.Time.now() - self.last_feedback_time) > self.benchmark_feedback_duration:
@@ -85,6 +92,9 @@ class MetricsBenchmarkMockup(object):
                         self.last_feedback_time = rospy.Time.now()
                     elif self.refbox_command.task == Command.ASSESS_ACTIVITY_STATE:
                         self.send_assess_activity_state_feedback()
+                        self.last_feedback_time = rospy.Time.now()
+                    elif self.refbox_command.task == Command.ITEM_DELIVERY:
+                        self.send_item_delivery_feedback()
                         self.last_feedback_time = rospy.Time.now()
 
             self.loop_rate.sleep()
@@ -188,6 +198,55 @@ class MetricsBenchmarkMockup(object):
         else:
             return
         self.result_publishers['assess_activity_state'].publish(result)
+
+    def send_item_delivery_result(self):
+        self.item_delivery_phase = 'nav_to_object'
+
+        result = ItemDeliveryResult()
+        result.message_type = result.RESULT
+        result.result = result.RESULT_SUCCESS
+        self.result_publishers['item_delivery'].publish(result)
+
+    def send_item_delivery_feedback(self):
+        result = ItemDeliveryResult()
+        result.message_type = result.FEEDBACK
+        if self.item_delivery_phase == 'nav_to_object':
+            result.phase = result.PHASE_NAV_TO_OBJECT
+            self.item_delivery_phase = 'object_detection'
+        elif self.item_delivery_phase == 'object_detection':
+            result.phase = result.PHASE_OBJECT_DETECTION
+            img = cv2.imread(os.path.join(self.sample_images_path, 'image.jpg'), cv2.IMREAD_COLOR)
+            result.image = self.cv_bridge.cv2_to_imgmsg(img, encoding='passthrough')
+            result.box2d.min_x = 148
+            result.box2d.min_y = 208
+            result.box2d.max_x = 202
+            result.box2d.max_y = 368
+            self.item_delivery_phase = 'object_pick'
+        elif self.item_delivery_phase == 'object_pick':
+            result.phase = result.PHASE_OBJECT_PICK
+            self.item_delivery_phase = 'nav_to_person'
+        elif self.item_delivery_phase == 'nav_to_person':
+            result.phase = result.PHASE_NAV_TO_PERSON
+            self.item_delivery_phase = 'person_detection'
+        elif self.item_delivery_phase == 'person_detection':
+            result.phase = result.PHASE_PERSON_DETECTION
+            img = cv2.imread(os.path.join(self.sample_images_path, 'person.jpg'), cv2.IMREAD_COLOR)
+            result.image = self.cv_bridge.cv2_to_imgmsg(img, encoding='passthrough')
+            result.box2d.min_x = 259
+            result.box2d.min_y = 106
+            result.box2d.max_x = 607
+            result.box2d.max_y = 426
+            self.item_delivery_phase = 'handover'
+        elif self.item_delivery_phase == 'handover':
+            result.phase = result.PHASE_HANDOVER
+            result.human_pose = result.HUMAN_POSE_STANDING
+            result.human_reach_out_result = result.HUMAN_REACHED_OUT
+            result.grasp_result = result.GRASP_SUCCESSFUL
+            result.post_grasp_result = result.OBJECT_NOT_DROPPED_AFTER_GRASP
+            self.item_delivery_phase = None
+        else:
+            return
+        self.result_publishers['item_delivery'].publish(result)
 
 def main():
     client = MetricsBenchmarkMockup()

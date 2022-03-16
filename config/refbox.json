@@ -56,6 +56,13 @@
          "enum": 8,
          "topic": "assess_activity_state_result",
          "type": "AssessActivityStateResult"
+       },
+       "item_delivery":
+       {
+         "name": "Item Delivery",
+         "enum": 9,
+         "topic": "item_delivery_result",
+         "type": "ItemDeliveryResult"
        }
      },
      "teams":
