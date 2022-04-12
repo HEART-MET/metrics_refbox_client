@@ -8,12 +8,12 @@
          "topic": "object_detection_result",
          "type": "ObjectDetectionResult"
        },
-       "human_recognition":
+       "person_detection" :
        {
-         "name": "Human Recognition",
+         "name": "Person Detection",
          "enum": 2,
-         "topic": "human_recognition_result",
-         "type": "HumanRecognitionResult"
+         "topic": "person_detection_result",
+         "type": "PersonDetectionResult"
        },
        "activity_recognition":
        {
@@ -68,6 +68,7 @@
      "teams":
      [
        "b-it-bots",
+       "RoboNotts",
        "HWU",
        "UNIFI",
        "UWE"

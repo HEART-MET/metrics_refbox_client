@@ -12,7 +12,7 @@ import metrics_refbox_msgs.msg
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 from metrics_refbox_msgs.msg import Command
-from metrics_refbox_msgs.msg import ObjectDetectionResult, HumanRecognitionResult, ActivityRecognitionResult
+from metrics_refbox_msgs.msg import ObjectDetectionResult, PersonDetectionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
 from metrics_refbox_msgs.msg import ClutteredPickResult, AssessActivityStateResult, ItemDeliveryResult
 from metrics_refbox_msgs.msg import BoundingBox2D
@@ -68,8 +68,8 @@ class MetricsBenchmarkMockup(object):
                 if (rospy.Time.now() - self.start_time) > self.benchmark_duration:
                     if self.refbox_command.task == Command.OBJECT_DETECTION:
                         self.send_object_detection_result()
-                    elif self.refbox_command.task == Command.HUMAN_RECOGNITION:
-                        self.send_human_recognition_result()
+                    elif self.refbox_command.task == Command.PERSON_DETECTION:
+                        self.send_person_detection_result()
                     elif self.refbox_command.task == Command.ACTIVITY_RECOGNITION:
                         self.send_activity_recognition_result()
                     elif self.refbox_command.task == Command.GESTURE_RECOGNITION:
@@ -112,11 +112,17 @@ class MetricsBenchmarkMockup(object):
         result.box2d.max_y = 368
         self.result_publishers['object_detection'].publish(result)
 
-    def send_human_recognition_result(self):
-        result = HumanRecognitionResult()
+    def send_person_detection_result(self):
+        result = PersonDetectionResult()
         result.message_type = result.RESULT
-        result.identities.append("Alice")
-        self.result_publishers['human_recognition'].publish(result)
+        result.person_found = True
+        img = cv2.imread(os.path.join(self.sample_images_path, 'person.jpg'), cv2.IMREAD_COLOR)
+        result.image = self.cv_bridge.cv2_to_imgmsg(img, encoding='passthrough')
+        result.box2d.min_x = 259
+        result.box2d.min_y = 106
+        result.box2d.max_x = 607
+        result.box2d.max_y = 426
+        self.result_publishers['person_detection'].publish(result)
 
     def send_activity_recognition_result(self):
         result = ActivityRecognitionResult()
