@@ -168,11 +168,11 @@ class MetricsBenchmarkMockup(object):
         if not self.last_object:
             result.object_name = "Apple%02d" % random.randint(1, 20)
             self.last_object = result.object_name
-            result.action_completed = ClutteredPickFeedback.PICKED
+            result.action_completed = ClutteredPickResult.PICKED
         else:
             result.object_name = self.last_object
             self.last_object = None
-            result.action_completed = ClutteredPickFeedback.PLACED
+            result.action_completed = ClutteredPickResult.PLACED
         self.result_publishers['cluttered_pick'].publish(result)
 
     def send_assess_activity_state_result(self):
