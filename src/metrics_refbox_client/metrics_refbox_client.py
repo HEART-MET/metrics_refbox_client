@@ -29,7 +29,7 @@ class MetricsRefboxClient(object):
         self.result = None
         self.result_type = None
         self.wait_for_recording_start_time = None
-        self.recording_timeout = 10.0
+        self.recording_timeout = 50.0
 
         self.state = 'IDLE'
 
