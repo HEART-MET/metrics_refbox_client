@@ -15,6 +15,7 @@ from metrics_refbox_msgs.msg import Command
 from metrics_refbox_msgs.msg import ObjectDetectionResult, PersonDetectionResult, ActivityRecognitionResult
 from metrics_refbox_msgs.msg import GestureRecognitionResult, HandoverObjectResult, ReceiveObjectResult
 from metrics_refbox_msgs.msg import ClutteredPickResult, AssessActivityStateResult, ItemDeliveryResult
+from metrics_refbox_msgs.msg import GenericTaskResult
 from metrics_refbox_msgs.msg import BoundingBox2D
 
 
@@ -64,7 +65,7 @@ class MetricsBenchmarkMockup(object):
 
     def run(self):
         while not rospy.is_shutdown():
-            if self.refbox_command is not None:
+            if self.refbox_command is not None and self.refbox_command.command == self.refbox_command.START:
                 if (rospy.Time.now() - self.start_time) > self.benchmark_duration:
                     if self.refbox_command.task == Command.OBJECT_DETECTION:
                         self.send_object_detection_result()
@@ -84,6 +85,8 @@ class MetricsBenchmarkMockup(object):
                         self.send_assess_activity_state_result()
                     elif self.refbox_command.task == Command.ITEM_DELIVERY:
                         self.send_item_delivery_result()
+                    elif self.refbox_command.task == Command.GENERIC_TASK:
+                        self.send_generic_task_result()
                     self.start_time = None
                     self.refbox_command = None
                 elif (rospy.Time.now() - self.last_feedback_time) > self.benchmark_feedback_duration:
@@ -253,6 +256,12 @@ class MetricsBenchmarkMockup(object):
         else:
             return
         self.result_publishers['item_delivery'].publish(result)
+
+    def send_generic_task_result(self):
+        result = GenericTaskResult()
+        result.message_type = result.RESULT
+        self.result_publishers['generic_task'].publish(result)
+
 
 def main():
     client = MetricsBenchmarkMockup()

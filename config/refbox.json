@@ -63,6 +63,13 @@
          "enum": 9,
          "topic": "item_delivery_result",
          "type": "ItemDeliveryResult"
+       },
+       "generic_task":
+       {
+         "name": "Generic Task",
+         "enum": 255,
+         "topic": "generic_task_result",
+         "type": "GenericTaskResult"
        }
      },
      "teams":
